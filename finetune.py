@@ -274,14 +274,17 @@ def train(
         result["labels"] = result["input_ids"].copy()
 
         return result
-
     def generate_and_tokenize_prompt(data_point):
+        full_prompt = data_point["text"]
+        '''
         full_prompt = prompter.generate_prompt(
             data_point["instruction"],
             data_point["input"],
             data_point["output"],
         )
+        '''
         tokenized_full_prompt = tokenize(full_prompt)
+        '''
         if not train_on_inputs:
             user_prompt = prompter.generate_prompt(
                 data_point["instruction"], data_point["input"]
@@ -290,15 +293,14 @@ def train(
                 user_prompt, add_eos_token=add_eos_token
             )
             user_prompt_len = len(tokenized_user_prompt["input_ids"])
-
             if add_eos_token:
                 user_prompt_len -= 1
-
             tokenized_full_prompt["labels"] = [
                 -100
             ] * user_prompt_len + tokenized_full_prompt["labels"][
                 user_prompt_len:
             ]  # could be sped up, probably
+        '''
         return tokenized_full_prompt
 
     if isinstance(model, RwkvForCausalLM):
@@ -320,7 +322,7 @@ def train(
     if data_path.endswith(".json") or data_path.endswith(".jsonl"):
         data = load_dataset("json", data_files=data_path)
     else:
-        data = load_dataset(data_path)
+        data = load_dataset("text", data_dir=data_path, sample_by="document")
 
     if resume_from_checkpoint:
         # Check the available weights and load them
